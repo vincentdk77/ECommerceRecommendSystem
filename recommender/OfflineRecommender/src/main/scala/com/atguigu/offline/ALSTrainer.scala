@@ -55,10 +55,10 @@ object ALSTrainer {
   }
 
   def adjustALSParams(trainData: RDD[Rating], testData: RDD[Rating]): Unit ={
-    // 遍历数组中定义的参数取值
+    // 遍历数组中定义的参数取值（rank：隐特征的维度     iterations：迭代次数    lambda：正则化系数）
     val result = for( rank <- Array(5, 10, 20, 50); lambda <- Array(1, 0.1, 0.01) )
       yield {
-        val model = ALS.train(trainData, rank, 10, lambda)
+        val model = ALS.train(trainData, rank, 10, lambda)//迭代次数固定为10
         val rmse = getRMSE( model, testData )
         ( rank, lambda, rmse )
       }

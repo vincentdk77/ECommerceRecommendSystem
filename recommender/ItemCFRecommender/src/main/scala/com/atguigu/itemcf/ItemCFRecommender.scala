@@ -1,7 +1,8 @@
 package com.atguigu.itemcf
 
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 /**
   * Copyright (c) 2018-2028 尚硅谷 All Rights Reserved 
@@ -55,13 +56,14 @@ object ItemCFRecommender {
       .cache()
 
     // TODO: 核心算法，计算同现相似度，得到商品的相似列表
-    // 统计每个商品的评分个数，按照productId来做group by
-    val productRatingCountDF = ratingDF.groupBy("productId").count()
-    // 在原有的评分表上rating添加count
-    val ratingWithCountDF = ratingDF.join(productRatingCountDF, "productId")
+    // 统计每个商品的评分个数，按照productId来做group by  (输出：productId，count)
+    val productRatingCountDF: DataFrame = ratingDF.groupBy("productId").count() //todo  注意DS的groupBy和RDD的groupBy的区别！这里等价于 select productId,count(1) from people group by productId;
+
+    // 在原有的评分表上rating添加count（输出 productId，userId，score，count  ）
+    val ratingWithCountDF: DataFrame = ratingDF.join(productRatingCountDF, "productId")// TODO:注意这里的join是DS的join，不是rdd的join，rdd的join要求rdd是key value的形式
 
     // 将评分按照用户id两两配对，统计两个商品被同一个用户评分过的次数
-    val joinedDF = ratingWithCountDF.join(ratingWithCountDF, "userId")
+    val joinedDF = ratingWithCountDF.join(ratingWithCountDF, "userId")//输出："userId","product","score","count","product","score","count"
       .toDF("userId","product1","score1","count1","product2","score2","count2")
       .select("userId","product1","count1","product2","count2")
     // 创建一张临时表，用于写sql查询

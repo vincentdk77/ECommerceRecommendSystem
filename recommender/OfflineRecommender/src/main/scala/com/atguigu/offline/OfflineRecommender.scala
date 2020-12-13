@@ -124,6 +124,13 @@ object OfflineRecommender {
 
     spark.stop()
   }
+
+  /**
+    * 求两个特征矩阵的余弦相似度
+    * @param product1
+    * @param product2
+    * @return
+    */
   def consinSim(product1: DoubleMatrix, product2: DoubleMatrix): Double ={
     product1.dot(product2)/ ( product1.norm2() * product2.norm2() )
   }
